@@ -1,23 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Media;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using SpeedLib;
 
 namespace Autosimulator
 {
-    internal class Auto
+    internal class Auto : IAuto
     {
         public string Marke { get; private set; }
         public int PS { get; private set; }
         public int AktuelleGeschwindigkeit { get; private set; }
         public int AktuellerGang { get; private set; }
         public bool IstMototGestartet { get; private set; }
+        public int lastknownspeed { get; private set; }
+
+        SpeedoMeter speedo;
+
         
         public Auto(string marke, int ps)
         {
             this.Marke = marke;
             this.PS = ps;
+
+            speedo = new SpeedoMeter(this);
         }
         public void StarteMotor()
         {
@@ -27,22 +37,50 @@ namespace Autosimulator
         {
             IstMototGestartet = false;
         }
+
+        public int Speedometer()
+        {
+            return speedo.Speedometer300();
+        }
+
+        //public int Speedometer()
+        //{
+        //    decimal ps = 100 / Convert.ToDecimal(PS);
+        //    decimal speed = AktuelleGeschwindigkeit;
+
+        //    decimal spedometer = ps * speed;
+        //    if (spedometer >= 100)
+        //    {
+        //        spedometer = 100;
+        //    }
+        //    if (spedometer <= 0)
+        //    {
+        //        spedometer = 0;
+        //    }
+        //    return Convert.ToInt32(spedometer);
+        //} 
         public void GibGas()
-        {   
-            int MaxSpeed = PS;
+        {   lastknownspeed = AktuelleGeschwindigkeit;
+            decimal MaxSpeed = PS;
             if (IstMototGestartet && AktuelleGeschwindigkeit <= MaxSpeed)
             {
-                AktuelleGeschwindigkeit += PS/10;
+                AktuelleGeschwindigkeit += Convert.ToInt32(MaxSpeed/100);
+                
                 Getriebe();
             }
         }
         public void Bremse()
         {
-            AktuelleGeschwindigkeit -= 10;
+            lastknownspeed = AktuelleGeschwindigkeit;
+            if (AktuelleGeschwindigkeit > 0) { 
+                AktuelleGeschwindigkeit -= 1;
+            }
         }
         public void Hupe()
         {
-
+            
+         
+            
         }
         private void Getriebe()
         {
